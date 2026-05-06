@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-tamarind-100: #E6DCD3;
+  --color-tamarind-500: #8E6E53;
+  --color-tamarind-700: #57412F;
+  --color-tamarind-900: #302116;
+  
+  --color-sage-100: #E1E6E1;
+  --color-sage-500: #889C8B;
+  --color-sage-700: #4B5B4E;
+  --color-sage-900: #29352B;
+
+  --color-warm-white: #FAF8F5;
+  --color-warm-paper: #F2EFE9;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+body {
+  @apply font-sans bg-warm-white text-tamarind-900 antialiased;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Subtle fade in animation class */
+.fade-in {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
