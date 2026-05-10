@@ -45,15 +45,15 @@ export default function VoucherForm() {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-sage-900 fade-in">
-        <CheckCircle className="w-16 h-16 text-sage-500 mb-6" />
+      <div className="flex flex-col items-center justify-center py-12 text-center text-brand-900 fade-in">
+        <CheckCircle className="w-16 h-16 text-brand-500 mb-6" />
         <h3 className="font-serif text-3xl mb-4">The Gift of Peace</h3>
         <p className="text-lg text-tamarind-700 max-w-md mx-auto mb-8">
           Your thoughtful gift voucher has been successfully delivered. Thank you for sharing the Ukwaju experience.
         </p>
         <button 
           onClick={() => setSuccess(false)}
-          className="border-b border-tamarind-500 pb-1 text-sm uppercase tracking-widest hover:text-sage-700 transition-colors"
+          className="border-b border-tamarind-500 pb-1 text-sm uppercase tracking-widest hover:text-brand-700 transition-colors"
         >
           Send Another Gift
         </button>
@@ -76,7 +76,7 @@ export default function VoucherForm() {
           <input
             {...register('senderName', { required: 'Your name is required' })}
             className={cn(
-              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
               errors.senderName && "border-red-300 focus:border-red-500"
             )}
             placeholder="Jane Doe"
@@ -90,7 +90,7 @@ export default function VoucherForm() {
           <input
             {...register('recipientName', { required: 'Recipient name is required' })}
             className={cn(
-              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
               errors.recipientName && "border-red-300 focus:border-red-500"
             )}
             placeholder="John Smith"
@@ -108,7 +108,7 @@ export default function VoucherForm() {
               pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
             })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
                errors.recipientEmail && "border-red-300 focus:border-red-500"
             )}
             placeholder="john@example.com"
@@ -122,7 +122,7 @@ export default function VoucherForm() {
           <select
             {...register('amount', { required: 'Please select an amount', valueAsNumber: true })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent appearance-none",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent appearance-none",
                errors.amount && "border-red-300 focus:border-red-500"
             )}
           >
@@ -142,7 +142,7 @@ export default function VoucherForm() {
         <textarea
           {...register('message')}
           rows={3}
-          className="w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent resize-none"
+          className="w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent resize-none"
           placeholder="Wishing you a moment of pure tranquility..."
         />
       </div>

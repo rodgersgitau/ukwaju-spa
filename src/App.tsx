@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Download, ChevronRight, Leaf, Waves, Sun, MapPin } from 'lucide-react';
 import BookingForm from './components/BookingForm';
 import VoucherForm from './components/VoucherForm';
@@ -10,11 +10,26 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+const HERO_IMAGES = [
+  "https://image-tc.galaxy.tf/wijpeg-8mx0qxzmskyrv4d9a43zr7eqa/spa-placeholder-1.jpg?width=1920",
+  "https://image-tc.galaxy.tf/wijpeg-b7czd6xsrtr7oj2etekjx2ng3/spa-placeholder-2.jpg?width=1920",
+  "https://image-tc.galaxy.tf/wipng-8n7ec8ahgihj6l2klxne0zcme/spa-placeholder-3.png?width=1920",
+  "https://image-tc.galaxy.tf/wijpeg-bfh15frdhalfrvay9a68tvk6r/spa-placeholder-4.jpg?width=1920"
+];
+
 export default function App() {
   const [activeForm, setActiveForm] = useState<'booking' | 'voucher'>('booking');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-warm-white text-tamarind-900 font-sans selection:bg-sage-100 selection:text-sage-900 overflow-x-hidden">
+    <div className="min-h-screen bg-warm-white text-tamarind-900 font-sans selection:bg-brand-100 selection:text-brand-900 overflow-x-hidden">
       {/* Navbar */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center transition-all bg-warm-white/80 backdrop-blur-md border-b border-tamarind-100/50">
         <div className="text-xl font-serif tracking-widest text-tamarind-900 flex flex-col">
@@ -22,9 +37,9 @@ export default function App() {
           <span className="text-[0.55rem] tracking-[0.3em] font-sans opacity-70">BY TAMARIND TREE</span>
         </div>
         <div className="hidden md:flex space-x-8 text-xs tracking-widest uppercase font-medium">
-          <a href="#philosophy" className="hover:text-sage-700 transition-colors">Philosophy</a>
-          <a href="#booking" className="hover:text-sage-700 transition-colors">Reservations</a>
-          <a href="#gifting" className="hover:text-sage-700 transition-colors">Gifting</a>
+          <a href="#philosophy" className="hover:text-brand-700 transition-colors">Philosophy</a>
+          <a href="#booking" className="hover:text-brand-700 transition-colors">Reservations</a>
+          <a href="#gifting" className="hover:text-brand-700 transition-colors">Gifting</a>
         </div>
         <a 
           href="#booking" 
@@ -35,20 +50,24 @@ export default function App() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative h-[95vh] w-full flex items-center justify-center overflow-hidden">
+      <section className="relative h-[95vh] w-full flex items-center justify-center overflow-hidden bg-tamarind-900 group">
         <div className="absolute inset-0">
-          <motion.img 
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 3, ease: 'easeOut' }}
-            src="https://images.unsplash.com/photo-1540555700887-cdcb4eeabdb4?auto=format&fit=crop&q=80&w=2000" 
-            alt="Ukwaju Spa Room" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-tamarind-900/40 mix-blend-multiply" />
+          <AnimatePresence>
+            <motion.img 
+              key={currentImageIndex}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, ease: 'easeInOut' }}
+              src={HERO_IMAGES[currentImageIndex]} 
+              alt="Ukwaju Spa" 
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-tamarind-900/40 mix-blend-multiply z-10 pointer-events-none" />
         </div>
         
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
+        <div className="relative z-20 text-center px-4 max-w-4xl mx-auto flex flex-col items-center pointer-events-none">
           <motion.span 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -79,7 +98,7 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-warm-white/60"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-warm-white/60 z-20 pointer-events-none"
         >
           <span className="text-[0.65rem] tracking-widest uppercase mb-4">Discover More</span>
           <div className="w-[1px] h-12 bg-white/30 relative overflow-hidden">
@@ -90,6 +109,37 @@ export default function App() {
              />
           </div>
         </motion.div>
+
+        {/* Carousel Indicators / Thumbnails */}
+        <div className="absolute bottom-8 right-8 md:bottom-12 md:right-12 z-30 flex space-x-3 pointer-events-auto">
+          {HERO_IMAGES.map((img, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentImageIndex(idx)}
+              className={cn(
+                "relative overflow-hidden w-20 h-14 md:w-28 md:h-20 transition-all duration-500 cursor-pointer rounded overflow-hidden",
+                currentImageIndex === idx 
+                  ? "border-[1.5px] border-warm-white shadow-lg shadow-black/30" 
+                  : "border border-transparent opacity-60 hover:opacity-100"
+              )}
+            >
+              {/* Overlay for inactive thumbnails */}
+              <div 
+                className={cn(
+                  "absolute inset-0 transition-colors duration-500 z-10 pointer-events-none",
+                  currentImageIndex !== idx && "bg-tamarind-900/40"
+                )} 
+              />
+              <motion.img 
+                whileHover={{ scale: 1.15 }}
+                transition={{ duration: 0.4 }}
+                src={img} 
+                alt={`Spa view ${idx + 1}`} 
+                className="w-full h-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Philosophy Section */}
@@ -104,14 +154,14 @@ export default function App() {
           >
             <div className="aspect-[3/4] rounded-[2rem] overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&q=80&w=1200" 
+                src="https://image-tc.galaxy.tf/wijpeg-9oxfokbmqw2qzgbbacmtassnf/swimming-pool2.jpg?width=1200" 
                 alt="Natural Spa Ingredients" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
               />
             </div>
             {/* Decoration */}
             <div className="absolute -bottom-8 -right-8 w-48 h-48 border border-tamarind-500 rounded-[2rem] -z-10" />
-            <div className="absolute -top-8 -left-8 w-32 h-32 bg-sage-100 rounded-full -z-10" />
+            <div className="absolute -top-8 -left-8 w-32 h-32 bg-brand-100 rounded-full -z-10" />
           </motion.div>
           
           <motion.div 
@@ -121,7 +171,7 @@ export default function App() {
             transition={{ duration: 1, delay: 0.2 }}
             className="order-1 md:order-2 space-y-8"
           >
-            <span className="text-xs uppercase tracking-widest text-sage-500 font-semibold mb-2 block">Our Philosophy</span>
+            <span className="text-xs uppercase tracking-widest text-brand-500 font-semibold mb-2 block">Our Philosophy</span>
             <h2 className="text-4xl md:text-5xl font-serif text-tamarind-900 leading-tight">
               Rooted in Nature,<br />Crafted for You.
             </h2>
@@ -134,14 +184,14 @@ export default function App() {
             
             <div className="pt-8 grid grid-cols-2 gap-8">
               <div className="space-y-3 relative">
-                <div className="w-10 h-10 rounded-full bg-sage-100 flex items-center justify-center text-sage-700">
+                <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700">
                   <Leaf className="w-4 h-4" />
                 </div>
                 <h4 className="font-serif text-xl">Local Wisdom</h4>
                 <p className="text-sm font-light text-tamarind-700">Therapies honoring ancient coastal traditions and native ingredients.</p>
               </div>
               <div className="space-y-3">
-                <div className="w-10 h-10 rounded-full bg-sage-100 flex items-center justify-center text-sage-700">
+                <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700">
                   <Waves className="w-4 h-4" />
                 </div>
                 <h4 className="font-serif text-xl">Deep Serenity</h4>
@@ -156,7 +206,7 @@ export default function App() {
       <section className="relative py-32 bg-tamarind-900 text-warm-white overflow-hidden">
         <div className="absolute inset-0 opacity-20 mix-blend-overlay">
            <img 
-              src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80&w=1600" 
+              src="https://image-tc.galaxy.tf/wijpeg-fz79olm11325tcd55lqd0hwm/outside-view-1-tamarind-tree.jpg?width=1920" 
               className="w-full h-full object-cover grayscale" 
               alt="Background Texture" 
            />
@@ -188,7 +238,7 @@ export default function App() {
             <a 
               href="/Ukwaju_Spa_Brochure.pdf" 
               download
-              className="inline-flex items-center space-x-3 bg-warm-white text-tamarind-900 px-8 py-4 rounded-full text-sm font-medium uppercase tracking-widest hover:bg-sage-100 transition-colors"
+              className="inline-flex items-center space-x-3 bg-warm-white text-tamarind-900 px-8 py-4 rounded-full text-sm font-medium uppercase tracking-widest hover:bg-brand-100 transition-colors"
             >
               <Download className="w-4 h-4" />
               <span>Download Brochure</span>
@@ -220,7 +270,7 @@ export default function App() {
                 className={cn(
                   "px-8 py-3 text-xs tracking-widest uppercase transition-all rounded-full",
                   activeForm === 'voucher' 
-                    ? "bg-sage-700 text-warm-white" 
+                    ? "bg-brand-700 text-warm-white" 
                     : "bg-transparent text-tamarind-700 hover:bg-tamarind-100"
                 )}
               >

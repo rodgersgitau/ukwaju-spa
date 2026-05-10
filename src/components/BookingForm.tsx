@@ -48,15 +48,15 @@ export default function BookingForm() {
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-sage-900 fade-in">
-        <CheckCircle className="w-16 h-16 text-sage-500 mb-6" />
+      <div className="flex flex-col items-center justify-center py-12 text-center text-brand-900 fade-in">
+        <CheckCircle className="w-16 h-16 text-brand-500 mb-6" />
         <h3 className="font-serif text-3xl mb-4">Your Retreat Awaits</h3>
         <p className="text-lg text-tamarind-700 max-w-md mx-auto mb-8">
           Thank you for choosing Ukwaju Spa. A gentle reminder of your reservation has been sent to your email. We look forward to welcoming you into our sanctuary.
         </p>
         <button 
           onClick={() => setSuccess(false)}
-          className="border-b border-tamarind-500 pb-1 text-sm uppercase tracking-widest hover:text-sage-700 transition-colors"
+          className="border-b border-tamarind-500 pb-1 text-sm uppercase tracking-widest hover:text-brand-700 transition-colors"
         >
           Book Another Experience
         </button>
@@ -79,7 +79,7 @@ export default function BookingForm() {
           <input
             {...register('name', { required: 'Name is required' })}
             className={cn(
-              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
               errors.name && "border-red-300 focus:border-red-500"
             )}
             placeholder="Jane Doe"
@@ -97,7 +97,7 @@ export default function BookingForm() {
               pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
             })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
                errors.email && "border-red-300 focus:border-red-500"
             )}
             placeholder="jane@example.com"
@@ -112,7 +112,7 @@ export default function BookingForm() {
             type="tel"
             {...register('phone', { required: 'Phone is required' })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
                errors.phone && "border-red-300 focus:border-red-500"
             )}
             placeholder="+254 700 000000"
@@ -126,7 +126,7 @@ export default function BookingForm() {
           <select
             {...register('guests', { required: 'Please select number of guests', valueAsNumber: true })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent appearance-none",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent appearance-none",
                errors.guests && "border-red-300 focus:border-red-500"
             )}
           >
@@ -145,7 +145,7 @@ export default function BookingForm() {
             type="date"
             {...register('date', { required: 'Date is required' })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
                errors.date && "border-red-300 focus:border-red-500"
             )}
             min={new Date().toISOString().split('T')[0]}
@@ -160,7 +160,7 @@ export default function BookingForm() {
             type="time"
             {...register('time', { required: 'Time preference is required' })}
             className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent",
+               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
                errors.time && "border-red-300 focus:border-red-500"
             )}
             min="09:00"
@@ -176,7 +176,7 @@ export default function BookingForm() {
         <textarea
           {...register('specialRequests')}
           rows={3}
-          className="w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-sage-500 transition-colors bg-transparent resize-none"
+          className="w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent resize-none"
           placeholder="Are there specific areas of tension, or are you celebrating an occasion?"
         />
       </div>
@@ -185,7 +185,7 @@ export default function BookingForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-sage-900 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-sage-700 disabled:opacity-70 flex justify-center items-center"
+          className="w-full bg-brand-900 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-brand-700 disabled:opacity-70 flex justify-center items-center"
         >
           {isSubmitting ? 'Reserving...' : 'Confirm Reservation'}
         </button>
