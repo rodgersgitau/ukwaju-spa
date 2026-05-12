@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Calendar, Clock, Users, FileText, CheckCircle } from 'lucide-react';
+import { CheckCircle, ChevronDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -16,13 +16,27 @@ type BookingFormData = {
   date: string;
   time: string;
   guests: number;
+  service: string;
   specialRequests: string;
 };
 
+const SERVICES = [
+  { value: "Relaxation Journey", description: "A calming experience focusing on gentle techniques to melt away stress." },
+  { value: "Rejuvenation Therapy", description: "An invigorating treatment using coastal ingredients to refresh body and mind." },
+  { value: "Restorative Body Treatment", description: "Deeply relaxing therapy aimed at releasing tension and restoring balance." },
+  { value: "Holistic Wellness Package", description: "A comprehensive package combining our best therapies for complete renewal." },
+  { value: "Consultation / Undecided", description: "Not sure? Speak with our therapists to tailor a treatment just for you." }
+];
+
 export default function BookingForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<BookingFormData>();
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch } = useForm<BookingFormData>();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
+
+  const inputClass = "w-full border-b border-tamarind-200 py-3 px-3 text-tamarind-900 placeholder:text-tamarind-900/40 focus:outline-none focus:border-brand-500 focus:bg-brand-50/50 transition-all bg-transparent hover:border-tamarind-300 rounded-t-sm";
+
+  const selectedService = watch('service');
+  const selectedServiceDescription = SERVICES.find(s => s.value === selectedService)?.description;
 
   const onSubmit = async (data: BookingFormData) => {
     try {
@@ -65,7 +79,7 @@ export default function BookingForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 fade-in text-left">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 fade-in text-left" noValidate>
       {serverError && (
         <div className="p-4 bg-red-50 text-red-800 rounded-xl text-sm mb-6">
           {serverError}
@@ -75,108 +89,142 @@ export default function BookingForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Name */}
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Full Name</label>
+          <label htmlFor="booking-name" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Full Name</label>
           <input
+            id="booking-name"
             {...register('name', { required: 'Name is required' })}
-            className={cn(
-              "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
-              errors.name && "border-red-300 focus:border-red-500"
-            )}
+            className={cn(inputClass, errors.name && "border-red-300 focus:border-red-500")}
             placeholder="Jane Doe"
+            aria-invalid={errors.name ? "true" : "false"}
+            aria-describedby={errors.name ? "booking-name-error" : undefined}
           />
-          {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+          {errors.name && <p id="booking-name-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.name.message}</p>}
         </div>
 
         {/* Email */}
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Email Address</label>
+          <label htmlFor="booking-email" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Email Address</label>
           <input
+            id="booking-email"
             type="email"
             {...register('email', { 
               required: 'Email is required',
               pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
             })}
-            className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
-               errors.email && "border-red-300 focus:border-red-500"
-            )}
+            className={cn(inputClass, errors.email && "border-red-300 focus:border-red-500")}
             placeholder="jane@example.com"
+            aria-invalid={errors.email ? "true" : "false"}
+            aria-describedby={errors.email ? "booking-email-error" : undefined}
           />
-          {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+          {errors.email && <p id="booking-email-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.email.message}</p>}
         </div>
 
         {/* Phone */}
         <div className="space-y-1">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Phone</label>
+          <label htmlFor="booking-phone" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Phone</label>
           <input
+            id="booking-phone"
             type="tel"
             {...register('phone', { required: 'Phone is required' })}
-            className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
-               errors.phone && "border-red-300 focus:border-red-500"
-            )}
+            className={cn(inputClass, errors.phone && "border-red-300 focus:border-red-500")}
             placeholder="+254 700 000000"
+            aria-invalid={errors.phone ? "true" : "false"}
+            aria-describedby={errors.phone ? "booking-phone-error" : undefined}
           />
-          {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
+          {errors.phone && <p id="booking-phone-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.phone.message}</p>}
         </div>
 
         {/* Guests */}
-        <div className="space-y-1">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Number of Guests</label>
-          <select
-            {...register('guests', { required: 'Please select number of guests', valueAsNumber: true })}
-            className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent appearance-none",
-               errors.guests && "border-red-300 focus:border-red-500"
-            )}
-          >
-            <option value="">Select guests</option>
-            {[1, 2, 3, 4, 5, 6].map(num => (
-              <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
-            ))}
-          </select>
-          {errors.guests && <p className="text-xs text-red-500 mt-1">{errors.guests.message}</p>}
+        <div className="space-y-1 relative group">
+          <label htmlFor="booking-guests" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Number of Guests</label>
+          <div className="relative">
+            <select
+              id="booking-guests"
+              {...register('guests', { required: 'Please select number of guests', valueAsNumber: true })}
+              className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.guests && "border-red-300 focus:border-red-500")}
+              aria-invalid={errors.guests ? "true" : "false"}
+              aria-describedby={errors.guests ? "booking-guests-error" : undefined}
+            >
+              <option value="">Select guests</option>
+              {[1, 2, 3, 4, 5, 6].map(num => (
+                <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
+          </div>
+          {errors.guests && <p id="booking-guests-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.guests.message}</p>}
         </div>
 
         {/* Date */}
         <div className="space-y-1 relative">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Date</label>
+          <label htmlFor="booking-date" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Date</label>
           <input
+            id="booking-date"
             type="date"
             {...register('date', { required: 'Date is required' })}
-            className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
-               errors.date && "border-red-300 focus:border-red-500"
-            )}
+            className={cn(inputClass, "cursor-pointer", errors.date && "border-red-300 focus:border-red-500")}
             min={new Date().toISOString().split('T')[0]}
+            aria-invalid={errors.date ? "true" : "false"}
+            aria-describedby={errors.date ? "booking-date-error" : undefined}
           />
-          {errors.date && <p className="text-xs text-red-500 mt-1">{errors.date.message}</p>}
+          {errors.date && <p id="booking-date-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.date.message}</p>}
         </div>
 
         {/* Time */}
         <div className="space-y-1 relative">
-          <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Time Preference</label>
+          <label htmlFor="booking-time" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Time Preference</label>
           <input
+            id="booking-time"
             type="time"
             {...register('time', { required: 'Time preference is required' })}
-            className={cn(
-               "w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent",
-               errors.time && "border-red-300 focus:border-red-500"
-            )}
+            className={cn(inputClass, "cursor-pointer", errors.time && "border-red-300 focus:border-red-500")}
             min="09:00"
             max="20:00"
+            aria-invalid={errors.time ? "true" : "false"}
+            aria-describedby={errors.time ? "booking-time-error" : undefined}
           />
-          {errors.time && <p className="text-xs text-red-500 mt-1">{errors.time.message}</p>}
+          {errors.time && <p id="booking-time-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.time.message}</p>}
+        </div>
+
+        {/* Service */}
+        <div className="space-y-1 md:col-span-2 group">
+          <label htmlFor="booking-service" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Desired Service</label>
+          <div className="relative">
+            <select
+              id="booking-service"
+              {...register('service', { required: 'Please select a service' })}
+              className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.service && "border-red-300 focus:border-red-500")}
+              aria-invalid={errors.service ? "true" : "false"}
+              aria-describedby={
+                errors.service 
+                  ? "booking-service-error" 
+                  : selectedServiceDescription 
+                    ? "booking-service-description" 
+                    : undefined
+              }
+            >
+              <option value="">Select a service</option>
+              {SERVICES.map(s => (
+                <option key={s.value} value={s.value} title={s.description}>{s.value}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
+          </div>
+          {selectedServiceDescription && !errors.service && (
+            <p id="booking-service-description" className="text-xs text-brand-700 mt-2 pl-3 italic fade-in">{selectedServiceDescription}</p>
+          )}
+          {errors.service && <p id="booking-service-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.service.message}</p>}
         </div>
       </div>
 
       {/* Special Requests */}
       <div className="space-y-1">
-        <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium">Any Special Intentions?</label>
+        <label htmlFor="booking-special" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Any Special Intentions?</label>
         <textarea
+          id="booking-special"
           {...register('specialRequests')}
           rows={3}
-          className="w-full bg-warm-white border-b border-tamarind-100 py-3 px-0 focus:outline-none focus:border-brand-500 transition-colors bg-transparent resize-none"
+          className={cn(inputClass, "resize-none")}
           placeholder="Are there specific areas of tension, or are you celebrating an occasion?"
         />
       </div>

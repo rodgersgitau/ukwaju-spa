@@ -17,7 +17,7 @@ async function startServer() {
   // 1. Booking endpoint
   app.post("/api/book", async (req, res) => {
     try {
-      const { name, email, phone, date, time, guests, specialRequests } = req.body;
+      const { name, email, phone, date, time, guests, service, specialRequests } = req.body;
       
       // In a real application, you would:
       // a) Send an email to the Spa and Guest using Nodemailer
@@ -40,7 +40,7 @@ async function startServer() {
           from: `"Ukwaju Spa by Tamarind Tree Hotel" <${process.env.SMTP_USER}>`,
           to: email,
           subject: "Your Relaxation Awaits: Booking Confirmation",
-          text: `Dear ${name},\n\nThank you for booking with Ukwaju Spa. We look forward to welcoming you on ${date} at ${time}.\n\nWarm regards,\nUkwaju Spa`,
+          text: `Dear ${name},\n\nThank you for booking with Ukwaju Spa. We look forward to welcoming you for your ${service} on ${date} at ${time}.\n\nWarm regards,\nUkwaju Spa`,
         });
 
         // Notice to spa team
@@ -48,7 +48,7 @@ async function startServer() {
           from: `"Ukwaju Spa System" <${process.env.SMTP_USER}>`,
           to: process.env.GOOGLE_CALENDAR_ID || process.env.SMTP_USER,
           subject: `New Booking: ${name} - ${date}`,
-          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nGuests: ${guests}\nRequests: ${specialRequests}`,
+          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nGuests: ${guests}\nService: ${service}\nRequests: ${specialRequests}`,
         });
       }
 
@@ -64,7 +64,7 @@ async function startServer() {
           calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
           requestBody: {
             summary: `Spa Booking: ${name}`,
-            description: `Phone: ${phone}\nEmail: ${email}\nGuests: ${guests}\nSpecial Requests: ${specialRequests}`,
+            description: `Phone: ${phone}\nEmail: ${email}\nGuests: ${guests}\nService: ${service}\nSpecial Requests: ${specialRequests}`,
             start: { dateTime: new Date(`${date}T${time}:00`).toISOString() },
             end: { dateTime: new Date(new Date(`${date}T${time}:00`).getTime() + 60 * 60 * 1000).toISOString() }, // Assume 1 hour
           }
@@ -82,7 +82,7 @@ async function startServer() {
   // 2. Voucher endpoint
   app.post("/api/voucher", async (req, res) => {
     try {
-      const { senderName, recipientName, recipientEmail, amount, message } = req.body;
+      const { senderName, recipientName, recipientEmail, recipientPhone, amount, message } = req.body;
       
       if (process.env.SMTP_HOST && process.env.SMTP_USER) {
         const transporter = nodemailer.createTransport({
@@ -100,7 +100,7 @@ async function startServer() {
           from: `"Ukwaju Spa Gift Vouchers" <${process.env.SMTP_USER}>`,
           to: recipientEmail,
           subject: `${senderName} sent you an Ukwaju Spa Gift Voucher!`,
-          text: `Dear ${recipientName},\n\nYou have received a gift voucher worth KES ${amount} from ${senderName}.\n\nMessage: ${message}\n\nPresent this email at Ukwaju Spa to redeem your relaxing experience.`,
+          text: `Dear ${recipientName},\n\nYou have received a gift voucher worth KES ${amount} from ${senderName}.\n${recipientPhone ? `\n(Phone: ${recipientPhone})` : ''}\nMessage: ${message}\n\nPresent this email at Ukwaju Spa to redeem your relaxing experience.`,
         });
       }
 
