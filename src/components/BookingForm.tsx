@@ -17,6 +17,7 @@ type BookingFormData = {
   time: string;
   guests: number;
   service: string;
+  duration: number;
   specialRequests: string;
 };
 
@@ -187,7 +188,7 @@ export default function BookingForm() {
         </div>
 
         {/* Service */}
-        <div className="space-y-1 md:col-span-2 group">
+        <div className="space-y-1 md:col-span-1 group">
           <label htmlFor="booking-service" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Desired Service</label>
           <div className="relative">
             <select
@@ -214,6 +215,27 @@ export default function BookingForm() {
             <p id="booking-service-description" className="text-xs text-brand-700 mt-2 pl-3 italic fade-in">{selectedServiceDescription}</p>
           )}
           {errors.service && <p id="booking-service-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.service.message}</p>}
+        </div>
+
+        {/* Duration */}
+        <div className="space-y-1 md:col-span-1 group">
+          <label htmlFor="booking-duration" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Duration</label>
+          <div className="relative">
+            <select
+              id="booking-duration"
+              {...register('duration', { required: 'Please select a duration', valueAsNumber: true })}
+              className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.duration && "border-red-300 focus:border-red-500")}
+              aria-invalid={errors.duration ? "true" : "false"}
+              aria-describedby={errors.duration ? "booking-duration-error" : undefined}
+            >
+              <option value="">Select duration</option>
+              <option value={60}>60 Minutes</option>
+              <option value={90}>90 Minutes</option>
+              <option value={120}>120 Minutes</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
+          </div>
+          {errors.duration && <p id="booking-duration-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.duration.message}</p>}
         </div>
       </div>
 

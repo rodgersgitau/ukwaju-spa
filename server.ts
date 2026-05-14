@@ -17,7 +17,7 @@ async function startServer() {
   // 1. Booking endpoint
   app.post("/api/book", async (req, res) => {
     try {
-      const { name, email, phone, date, time, guests, service, specialRequests } = req.body;
+      const { name, email, phone, date, time, guests, service, duration, specialRequests } = req.body;
       
       // In a real application, you would:
       // a) Send an email to the Spa and Guest using Nodemailer
@@ -40,7 +40,7 @@ async function startServer() {
           from: `"Ukwaju Spa by Tamarind Tree Hotel" <${process.env.SMTP_USER}>`,
           to: email,
           subject: "Your Relaxation Awaits: Booking Confirmation",
-          text: `Dear ${name},\n\nThank you for booking with Ukwaju Spa. We look forward to welcoming you for your ${service} on ${date} at ${time}.\n\nWarm regards,\nUkwaju Spa`,
+          text: `Dear ${name},\n\nThank you for booking with Ukwaju Spa. We look forward to welcoming you for your ${service} (${duration} mins) on ${date} at ${time}.\n\nWarm regards,\nUkwaju Spa`,
         });
 
         // Notice to spa team
@@ -48,7 +48,7 @@ async function startServer() {
           from: `"Ukwaju Spa System" <${process.env.SMTP_USER}>`,
           to: process.env.GOOGLE_CALENDAR_ID || process.env.SMTP_USER,
           subject: `New Booking: ${name} - ${date}`,
-          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nGuests: ${guests}\nService: ${service}\nRequests: ${specialRequests}`,
+          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nDuration: ${duration} mins\nGuests: ${guests}\nService: ${service}\nRequests: ${specialRequests}`,
         });
       }
 
@@ -60,13 +60,16 @@ async function startServer() {
           scopes: ['https://www.googleapis.com/auth/calendar']
         });
         const calendar = google.calendar({ version: 'v3', auth: jwtClient });
+        
+        const durationMs = (duration || 60) * 60 * 1000;
+        
         await calendar.events.insert({
           calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
           requestBody: {
             summary: `Spa Booking: ${name}`,
-            description: `Phone: ${phone}\nEmail: ${email}\nGuests: ${guests}\nService: ${service}\nSpecial Requests: ${specialRequests}`,
+            description: `Phone: ${phone}\nEmail: ${email}\nGuests: ${guests}\nService: ${service}\nDuration: ${duration} mins\nSpecial Requests: ${specialRequests}`,
             start: { dateTime: new Date(`${date}T${time}:00`).toISOString() },
-            end: { dateTime: new Date(new Date(`${date}T${time}:00`).getTime() + 60 * 60 * 1000).toISOString() }, // Assume 1 hour
+            end: { dateTime: new Date(new Date(`${date}T${time}:00`).getTime() + durationMs).toISOString() },
           }
         });
       }
@@ -74,8 +77,19 @@ async function startServer() {
       // Return success regardless of actual configuration constraints in this demo
       res.json({ success: true, message: "Booking received and confirmed." });
     } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again later.";
+      if (error.code === 'EENVELOPE') {
+        errorMessage = `We couldn't deliver the confirmation to the email address provided. Please check the email address and try again.`;
+      } else if (error.code === 'EAUTH' || error.code === 'ECONNREFUSED' || error.code === 'ESOCKET') {
+        errorMessage = "Our system is currently experiencing temporary issues sending emails. Please try again later or contact us directly.";
+      } else if (error.message && error.message.includes('No recipients')) {
+        errorMessage = "Please check your email address, it seems to be missing or invalid.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       console.error("Booking API Error:", error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: errorMessage });
     }
   });
 
@@ -106,8 +120,19 @@ async function startServer() {
 
       res.json({ success: true, message: "Voucher purchased and sent successfully." });
     } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again later.";
+      if (error.code === 'EENVELOPE') {
+        errorMessage = `We couldn't deliver the voucher to the email address provided. Please check the recipient's email address and try again.`;
+      } else if (error.code === 'EAUTH' || error.code === 'ECONNREFUSED' || error.code === 'ESOCKET') {
+        errorMessage = "Our system is currently experiencing temporary issues sending emails. Please try again later or contact us directly.";
+      } else if (error.message && error.message.includes('No recipients')) {
+        errorMessage = "Please check the recipient's email address, it seems to be missing or invalid.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       console.error("Voucher API Error:", error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: errorMessage });
     }
   });
 
