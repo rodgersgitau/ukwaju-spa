@@ -89,7 +89,10 @@ export default function VoucherForm() {
           <label htmlFor="voucher-sender" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Your Name</label>
           <input
             id="voucher-sender"
-            {...register('senderName', { required: 'Your name is required' })}
+            {...register('senderName', { 
+              required: 'Your name is required',
+              minLength: { value: 2, message: 'Name must be at least 2 characters' }
+            })}
             className={cn(inputClass, errors.senderName && "border-red-300 focus:border-red-500")}
             placeholder="Jane Doe"
             aria-invalid={errors.senderName ? "true" : "false"}
@@ -103,7 +106,10 @@ export default function VoucherForm() {
           <label htmlFor="voucher-recipient-name" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Recipient's Name</label>
           <input
             id="voucher-recipient-name"
-            {...register('recipientName', { required: 'Recipient name is required' })}
+            {...register('recipientName', { 
+              required: 'Recipient name is required',
+              minLength: { value: 2, message: 'Name must be at least 2 characters' }
+            })}
             className={cn(inputClass, errors.recipientName && "border-red-300 focus:border-red-500")}
             placeholder="John Smith"
             aria-invalid={errors.recipientName ? "true" : "false"}
@@ -120,7 +126,7 @@ export default function VoucherForm() {
             type="email"
             {...register('recipientEmail', { 
               required: 'Recipient email is required',
-              pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
+              pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Please enter a valid email address' }
             })}
             className={cn(inputClass, errors.recipientEmail && "border-red-300 focus:border-brand-500")}
             placeholder="john@example.com"
@@ -136,10 +142,15 @@ export default function VoucherForm() {
           <input
             id="voucher-recipient-phone"
             type="tel"
-            {...register('recipientPhone')}
-            className={cn(inputClass)}
+            {...register('recipientPhone', {
+              pattern: { value: /^\+?[0-9\s\-()]{7,15}$/, message: 'Please enter a valid phone number' }
+            })}
+            className={cn(inputClass, errors.recipientPhone && "border-red-300 focus:border-red-500")}
             placeholder="+254 700 000000"
+            aria-invalid={errors.recipientPhone ? "true" : "false"}
+            aria-describedby={errors.recipientPhone ? "voucher-recipient-phone-error" : undefined}
           />
+          {errors.recipientPhone && <p id="voucher-recipient-phone-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.recipientPhone.message}</p>}
         </div>
 
         {/* Amount */}
@@ -172,7 +183,7 @@ export default function VoucherForm() {
                   id="voucher-custom-amount"
                   type="number"
                   {...register('customAmount', { 
-                    required: 'Please enter a custom amount',
+                    required: watchAmount === 'custom' ? 'Please enter a custom amount' : false,
                     min: { value: 1000, message: 'Minimum amount is KES 1,000' }
                   })}
                   placeholder="0"
