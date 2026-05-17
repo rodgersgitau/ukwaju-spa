@@ -126,7 +126,7 @@ export default function VoucherForm() {
             type="email"
             {...register('recipientEmail', { 
               required: 'Recipient email is required',
-              pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Please enter a valid email address' }
+              pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' }
             })}
             className={cn(inputClass, errors.recipientEmail && "border-red-300 focus:border-brand-500")}
             placeholder="john@example.com"
@@ -143,7 +143,10 @@ export default function VoucherForm() {
             id="voucher-recipient-phone"
             type="tel"
             {...register('recipientPhone', {
-              pattern: { value: /^\+?[0-9\s\-()]{7,15}$/, message: 'Please enter a valid phone number' }
+              pattern: {
+                value: /^\+?[0-9\s\-()]{7,15}$/,
+                message: 'Please enter a valid phone number'
+              }
             })}
             className={cn(inputClass, errors.recipientPhone && "border-red-300 focus:border-red-500")}
             placeholder="+254 700 000000"
@@ -183,8 +186,13 @@ export default function VoucherForm() {
                   id="voucher-custom-amount"
                   type="number"
                   {...register('customAmount', { 
-                    required: watchAmount === 'custom' ? 'Please enter a custom amount' : false,
-                    min: { value: 1000, message: 'Minimum amount is KES 1,000' }
+                    validate: (value) => {
+                      if (watchAmount === 'custom') {
+                        if (!value) return 'Please enter a custom amount';
+                        if (Number(value) < 1000) return 'Minimum amount is KES 1,000';
+                      }
+                      return true;
+                    }
                   })}
                   placeholder="0"
                   className={cn(inputClass, "pl-12", errors.customAmount && "border-red-300 focus:border-red-500")}

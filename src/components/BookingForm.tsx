@@ -223,7 +223,11 @@ export default function BookingForm() {
           <div className="relative">
             <select
               id="booking-duration"
-              {...register('duration', { required: 'Please select a duration', valueAsNumber: true })}
+              {...register('duration', { 
+                required: 'Please select a duration', 
+                valueAsNumber: true,
+                min: { value: 60, message: 'Minimum duration is 60 minutes' }
+              })}
               className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.duration && "border-red-300 focus:border-red-500")}
               aria-invalid={errors.duration ? "true" : "false"}
               aria-describedby={errors.duration ? "booking-duration-error" : undefined}
