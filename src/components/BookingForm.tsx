@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { CheckCircle, ChevronDown } from 'lucide-react';
+import { CheckCircle, ChevronDown, Feather, Sparkles, HeartPulse, Flower2, MessageCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,29 +15,76 @@ type BookingFormData = {
   phone: string;
   date: string;
   time: string;
-  guests: number;
   service: string;
   duration: number;
   specialRequests: string;
 };
 
 const SERVICES = [
-  { value: "Relaxation Journey", description: "A calming experience focusing on gentle techniques to melt away stress." },
-  { value: "Rejuvenation Therapy", description: "An invigorating treatment using coastal ingredients to refresh body and mind." },
-  { value: "Restorative Body Treatment", description: "Deeply relaxing therapy aimed at releasing tension and restoring balance." },
-  { value: "Holistic Wellness Package", description: "A comprehensive package combining our best therapies for complete renewal." },
-  { value: "Consultation / Undecided", description: "Not sure? Speak with our therapists to tailor a treatment just for you." }
+  { value: "Relaxation Journey", icon: Feather, description: "A calming experience focusing on gentle techniques to melt away stress." },
+  { value: "Rejuvenation Therapy", icon: Sparkles, description: "An invigorating treatment using coastal ingredients to refresh body and mind." },
+  { value: "Restorative Body Treatment", icon: HeartPulse, description: "Deeply relaxing therapy aimed at releasing tension and restoring balance." },
+  { value: "Holistic Wellness Package", icon: Flower2, description: "A comprehensive package combining our best therapies for complete renewal." },
+  { value: "Consultation / Undecided", icon: MessageCircle, description: "Not sure? Speak with our therapists to tailor a treatment just for you." }
 ];
 
 export default function BookingForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch } = useForm<BookingFormData>();
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch, setValue } = useForm<BookingFormData>({
+    defaultValues: {
+      duration: 60,
+    }
+  });
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
+  
+  const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsServiceDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const inputClass = "w-full border-b border-tamarind-200 py-3 px-3 text-tamarind-900 placeholder:text-tamarind-900/40 focus:outline-none focus:border-brand-500 focus:bg-brand-50/50 transition-all bg-transparent hover:border-tamarind-300 rounded-t-sm";
 
   const selectedService = watch('service');
   const selectedServiceDescription = SERVICES.find(s => s.value === selectedService)?.description;
+
+  const selectedDuration = watch('duration');
+  const durationValue = isNaN(selectedDuration) ? 60 : selectedDuration;
+  const selectedTime = watch('time');
+
+  const timeSlots = React.useMemo(() => {
+    const slots = [];
+    let currentStart = 9 * 60; // 9:00 AM
+    const endLimit = 20 * 60; // 8:00 PM
+    const interval = 30;
+
+    while (currentStart + (durationValue || 60) <= endLimit) {
+      const hours = Math.floor(currentStart / 60);
+      const mins = currentStart % 60;
+      const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      
+      const displayHours = hours === 12 ? 12 : hours % 12;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayString = `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+
+      slots.push({ value: timeString, label: displayString });
+      currentStart += interval;
+    }
+    return slots;
+  }, [durationValue]);
+
+  React.useEffect(() => {
+    if (selectedTime && !timeSlots.find(s => s.value === selectedTime)) {
+      setValue('time', '', { shouldValidate: true });
+    }
+  }, [timeSlots, selectedTime, setValue]);
 
   const onSubmit = async (data: BookingFormData) => {
     try {
@@ -135,27 +182,6 @@ export default function BookingForm() {
           {errors.phone && <p id="booking-phone-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.phone.message}</p>}
         </div>
 
-        {/* Guests */}
-        <div className="space-y-1 relative group">
-          <label htmlFor="booking-guests" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Number of Guests</label>
-          <div className="relative">
-            <select
-              id="booking-guests"
-              {...register('guests', { required: 'Please select number of guests', valueAsNumber: true })}
-              className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.guests && "border-red-300 focus:border-red-500")}
-              aria-invalid={errors.guests ? "true" : "false"}
-              aria-describedby={errors.guests ? "booking-guests-error" : undefined}
-            >
-              <option value="">Select guests</option>
-              {[1, 2, 3, 4, 5, 6].map(num => (
-                <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
-          </div>
-          {errors.guests && <p id="booking-guests-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.guests.message}</p>}
-        </div>
-
         {/* Date */}
         <div className="space-y-1 relative">
           <label htmlFor="booking-date" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Date</label>
@@ -171,30 +197,15 @@ export default function BookingForm() {
           {errors.date && <p id="booking-date-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.date.message}</p>}
         </div>
 
-        {/* Time */}
-        <div className="space-y-1 relative">
-          <label htmlFor="booking-time" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Time Preference</label>
-          <input
-            id="booking-time"
-            type="time"
-            {...register('time', { required: 'Time preference is required' })}
-            className={cn(inputClass, "cursor-pointer", errors.time && "border-red-300 focus:border-red-500")}
-            min="09:00"
-            max="20:00"
-            aria-invalid={errors.time ? "true" : "false"}
-            aria-describedby={errors.time ? "booking-time-error" : undefined}
-          />
-          {errors.time && <p id="booking-time-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.time.message}</p>}
-        </div>
-
         {/* Service */}
         <div className="space-y-1 md:col-span-1 group">
           <label htmlFor="booking-service" className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Desired Service</label>
-          <div className="relative">
-            <select
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
               id="booking-service"
-              {...register('service', { required: 'Please select a service' })}
-              className={cn(inputClass, "appearance-none pr-10 cursor-pointer", errors.service && "border-red-300 focus:border-red-500")}
+              onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}
+              className={cn(inputClass, "flex items-center justify-between cursor-pointer w-full text-left", errors.service && "border-red-300 focus:border-red-500")}
               aria-invalid={errors.service ? "true" : "false"}
               aria-describedby={
                 errors.service 
@@ -204,12 +215,50 @@ export default function BookingForm() {
                     : undefined
               }
             >
-              <option value="">Select a service</option>
-              {SERVICES.map(s => (
-                <option key={s.value} value={s.value} title={s.description}>{s.value}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
+              <div className="flex items-center text-sm">
+                {selectedService ? (
+                  <>
+                    {(() => {
+                      const Icon = SERVICES.find(s => s.value === selectedService)?.icon || Feather;
+                      return <Icon className="w-4 h-4 mr-2 text-tamarind-700/70" />;
+                    })()}
+                    <span>{selectedService}</span>
+                  </>
+                ) : (
+                  <span className="text-tamarind-900/40">Select a service</span>
+                )}
+              </div>
+              <ChevronDown className={cn("w-4 h-4 text-tamarind-700/50 transition-transform flex-shrink-0 ml-2", isServiceDropdownOpen && "rotate-180")} aria-hidden="true" />
+            </button>
+            
+            {isServiceDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-warm-white border border-tamarind-100 rounded-sm shadow-lg max-h-60 overflow-auto">
+                <ul className="py-1">
+                  {SERVICES.map(s => (
+                    <li key={s.value}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue('service', s.value, { shouldValidate: true });
+                          setIsServiceDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-2.5 text-left hover:bg-brand-50 transition-colors flex items-center",
+                          selectedService === s.value ? "bg-brand-50/50 text-brand-900" : "text-tamarind-900"
+                        )}
+                        title={s.description}
+                      >
+                        <s.icon className="w-4 h-4 mr-3 text-tamarind-700/70 flex-shrink-0" />
+                        <span className="text-sm">{s.value}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Hidden native input for react-hook-form */}
+            <input type="hidden" {...register('service', { required: 'Please select a service' })} />
           </div>
           {selectedServiceDescription && !errors.service && (
             <p id="booking-service-description" className="text-xs text-brand-700 mt-2 pl-3 italic fade-in">{selectedServiceDescription}</p>
@@ -232,7 +281,6 @@ export default function BookingForm() {
               aria-invalid={errors.duration ? "true" : "false"}
               aria-describedby={errors.duration ? "booking-duration-error" : undefined}
             >
-              <option value="">Select duration</option>
               <option value={60}>60 Minutes</option>
               <option value={90}>90 Minutes</option>
               <option value={120}>120 Minutes</option>
@@ -240,6 +288,41 @@ export default function BookingForm() {
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tamarind-700/50 pointer-events-none group-hover:text-tamarind-900 transition-colors" aria-hidden="true" />
           </div>
           {errors.duration && <p id="booking-duration-error" className="text-xs text-red-500 mt-1 pl-3" role="alert">{errors.duration.message}</p>}
+        </div>
+
+        {/* Time */}
+        <div className="space-y-3 relative md:col-span-2 mt-2">
+          <div className="flex justify-between items-center pr-3">
+             <label className="text-xs uppercase tracking-widest text-tamarind-700 font-medium pl-3">Time Preference</label>
+             <span className="text-[10px] text-tamarind-600/70">Based on {durationValue || 60} mins duration</span>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 px-3">
+            {timeSlots.map(slot => (
+              <button
+                key={slot.value}
+                type="button"
+                onClick={() => setValue('time', slot.value, { shouldValidate: true })}
+                className={cn(
+                  "py-2.5 px-2 text-sm border rounded-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1",
+                  selectedTime === slot.value 
+                    ? "bg-brand-900 border-brand-900 text-warm-white shadow-sm" 
+                    : "border-tamarind-200 text-tamarind-900 hover:bg-brand-50 hover:border-brand-300 bg-transparent"
+                )}
+                aria-pressed={selectedTime === slot.value}
+              >
+                {slot.label}
+              </button>
+            ))}
+          </div>
+          
+          <input 
+            type="hidden" 
+            {...register('time', { required: 'Please select a time' })} 
+          />
+          <div className="flex justify-between items-center pl-3 pr-3 pt-1">
+             <p id="booking-time-note" className="text-[10px] text-tamarind-600/70">Available slots: 9 AM to 8 PM</p>
+             {errors.time && <p id="booking-time-error" className="text-xs text-red-500" role="alert">{errors.time.message}</p>}
+          </div>
         </div>
       </div>
 

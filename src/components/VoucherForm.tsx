@@ -144,7 +144,7 @@ export default function VoucherForm() {
             type="tel"
             {...register('recipientPhone', {
               pattern: {
-                value: /^\+?[0-9\s\-()]{7,15}$/,
+                value: /^\+?[\d\s\-().]{7,20}$/,
                 message: 'Please enter a valid phone number'
               }
             })}

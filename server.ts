@@ -17,7 +17,7 @@ async function startServer() {
   // 1. Booking endpoint
   app.post("/api/book", async (req, res) => {
     try {
-      const { name, email, phone, date, time, guests, service, duration, specialRequests } = req.body;
+      const { name, email, phone, date, time, service, duration, specialRequests } = req.body;
       
       // In a real application, you would:
       // a) Send an email to the Spa and Guest using Nodemailer
@@ -48,7 +48,7 @@ async function startServer() {
           from: `"Ukwaju Spa System" <${process.env.SMTP_USER}>`,
           to: process.env.GOOGLE_CALENDAR_ID || process.env.SMTP_USER,
           subject: `New Booking: ${name} - ${date}`,
-          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nDuration: ${duration} mins\nGuests: ${guests}\nService: ${service}\nRequests: ${specialRequests}`,
+          text: `New booking details:\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nDate: ${date}\nTime: ${time}\nDuration: ${duration} mins\nService: ${service}\nRequests: ${specialRequests}`,
         });
       }
 
@@ -67,7 +67,7 @@ async function startServer() {
           calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
           requestBody: {
             summary: `Spa Booking: ${name}`,
-            description: `Phone: ${phone}\nEmail: ${email}\nGuests: ${guests}\nService: ${service}\nDuration: ${duration} mins\nSpecial Requests: ${specialRequests}`,
+            description: `Phone: ${phone}\nEmail: ${email}\nService: ${service}\nDuration: ${duration} mins\nSpecial Requests: ${specialRequests}`,
             start: { dateTime: new Date(`${date}T${time}:00`).toISOString() },
             end: { dateTime: new Date(new Date(`${date}T${time}:00`).getTime() + durationMs).toISOString() },
           }
