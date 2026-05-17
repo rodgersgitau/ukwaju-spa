@@ -8,7 +8,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-type VoucherFormData = {
+export type VoucherFormData = {
   senderName: string;
   recipientName: string;
   recipientEmail: string;
@@ -18,8 +18,10 @@ type VoucherFormData = {
   message: string;
 };
 
-export default function VoucherForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch } = useForm<VoucherFormData>();
+export default function VoucherForm({ initialValues }: { initialValues?: Partial<VoucherFormData> }) {
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch } = useForm<VoucherFormData>({
+    defaultValues: initialValues
+  });
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState('');
 

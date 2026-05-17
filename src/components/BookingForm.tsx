@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { CheckCircle, ChevronDown, Feather, Sparkles, HeartPulse, Flower2, MessageCircle } from 'lucide-react';
+import { CheckCircle, ChevronDown, Feather, Sparkles, HeartPulse, Flower2, MessageCircle, Gift } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -9,7 +9,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-type BookingFormData = {
+export type BookingFormData = {
   name: string;
   email: string;
   phone: string;
@@ -25,13 +25,38 @@ const SERVICES = [
   { value: "Rejuvenation Therapy", icon: Sparkles, description: "An invigorating treatment using coastal ingredients to refresh body and mind." },
   { value: "Restorative Body Treatment", icon: HeartPulse, description: "Deeply relaxing therapy aimed at releasing tension and restoring balance." },
   { value: "Holistic Wellness Package", icon: Flower2, description: "A comprehensive package combining our best therapies for complete renewal." },
-  { value: "Consultation / Undecided", icon: MessageCircle, description: "Not sure? Speak with our therapists to tailor a treatment just for you." }
+  { value: "Consultation / Undecided", icon: MessageCircle, description: "Not sure? Speak with our therapists to tailor a treatment just for you." },
+  { value: "Book as Gift", icon: Gift, description: "Treat someone special to an unforgettable Ukwaju Spa experience." }
 ];
 
-export default function BookingForm() {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch, setValue } = useForm<BookingFormData>({
+const getTodayDateString = () => {
+  const today = new Date();
+  return new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
+const getDefaultDateString = () => {
+  const now = new Date();
+  const day = now.getDay();
+  let endHour = 20;
+  if (day === 6) {
+    endHour = 21;
+  } else if (day === 0) {
+    endHour = 19;
+  }
+
+  // If current time + 60 mins is past the closing hour (no slots left today), use tomorrow
+  if (now.getHours() * 60 + now.getMinutes() + 60 > endHour * 60) {
+    now.setDate(now.getDate() + 1);
+  }
+  
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
+export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Partial<BookingFormData>) => void }) {
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, watch, setValue, getValues } = useForm<BookingFormData>({
     defaultValues: {
       duration: 60,
+      date: getDefaultDateString(),
     }
   });
   const [success, setSuccess] = useState(false);
@@ -56,29 +81,61 @@ export default function BookingForm() {
   const selectedServiceDescription = SERVICES.find(s => s.value === selectedService)?.description;
 
   const selectedDuration = watch('duration');
-  const durationValue = isNaN(selectedDuration) ? 60 : selectedDuration;
+  const durationValue = parseInt(selectedDuration as any, 10) || 60;
   const selectedTime = watch('time');
+  const selectedDate = watch('date');
+
+  const { startHour, endHour, hoursString } = React.useMemo(() => {
+    let start = 9;
+    let end = 20;
+    let str = "9 AM to 8 PM";
+
+    if (selectedDate) {
+      const dateObj = new Date(selectedDate);
+      if (!isNaN(dateObj.getTime())) {
+        const day = dateObj.getUTCDay();
+        if (day === 6) { // Saturday
+          start = 8;
+          end = 21;
+          str = "8 AM to 9 PM";
+        } else if (day === 0) { // Sunday
+          start = 9;
+          end = 19;
+          str = "9 AM to 7 PM";
+        }
+      }
+    }
+    return { startHour: start, endHour: end, hoursString: str };
+  }, [selectedDate]);
 
   const timeSlots = React.useMemo(() => {
     const slots = [];
-    let currentStart = 9 * 60; // 9:00 AM
-    const endLimit = 20 * 60; // 8:00 PM
-    const interval = 30;
+    let currentStart = startHour * 60;
+    const endLimit = endHour * 60;
+    const interval = durationValue || 60;
+
+    let minMinutesToday = 0;
+    if (selectedDate === getTodayDateString()) {
+      const today = new Date();
+      minMinutesToday = today.getHours() * 60 + today.getMinutes();
+    }
 
     while (currentStart + (durationValue || 60) <= endLimit) {
-      const hours = Math.floor(currentStart / 60);
-      const mins = currentStart % 60;
-      const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-      
-      const displayHours = hours === 12 ? 12 : hours % 12;
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const displayString = `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+      if (currentStart >= minMinutesToday) {
+        const hours = Math.floor(currentStart / 60);
+        const mins = currentStart % 60;
+        const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        
+        const displayHours = hours === 12 ? 12 : hours % 12;
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayString = `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
 
-      slots.push({ value: timeString, label: displayString });
+        slots.push({ value: timeString, label: displayString });
+      }
       currentStart += interval;
     }
     return slots;
-  }, [durationValue]);
+  }, [durationValue, startHour, endHour, selectedDate]);
 
   React.useEffect(() => {
     if (selectedTime && !timeSlots.find(s => s.value === selectedTime)) {
@@ -239,6 +296,11 @@ export default function BookingForm() {
                       <button
                         type="button"
                         onClick={() => {
+                          if (s.value === "Book as Gift") {
+                            onGiftSelect?.(getValues());
+                            setIsServiceDropdownOpen(false);
+                            return;
+                          }
                           setValue('service', s.value, { shouldValidate: true });
                           setIsServiceDropdownOpen(false);
                         }}
@@ -320,7 +382,7 @@ export default function BookingForm() {
             {...register('time', { required: 'Please select a time' })} 
           />
           <div className="flex justify-between items-center pl-3 pr-3 pt-1">
-             <p id="booking-time-note" className="text-[10px] text-tamarind-600/70">Available slots: 9 AM to 8 PM</p>
+             <p id="booking-time-note" className="text-[10px] text-tamarind-600/70">Available slots: {hoursString}</p>
              {errors.time && <p id="booking-time-error" className="text-xs text-red-500" role="alert">{errors.time.message}</p>}
           </div>
         </div>
