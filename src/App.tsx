@@ -33,8 +33,8 @@ export default function App() {
       {/* Navbar */}
       <nav className="fixed w-full z-50 px-6 py-6 flex justify-between items-center transition-all bg-warm-white/80 backdrop-blur-md border-b border-tamarind-100/50">
         <div className="text-xl font-serif tracking-widest text-tamarind-900 flex flex-col">
-          <span>UKWAJU</span>
-          <span className="text-[0.55rem] tracking-[0.3em] font-sans opacity-70">BY TAMARIND TREE</span>
+          <span className="text-brand-500 font-bold">UKWAJU SPA</span>
+          <span className="text-[0.45rem] tracking-[0.3em] font-sans opacity-70">AT TAMARIND TREE HOTEL</span>
         </div>
         <div className="hidden md:flex space-x-8 text-xs tracking-widest uppercase font-medium">
           <a href="#philosophy" className="hover:text-brand-700 transition-colors">Philosophy</a>
@@ -204,12 +204,14 @@ export default function App() {
 
       {/* Brochure CTA Section */}
       <section className="relative py-32 bg-tamarind-900 text-warm-white overflow-hidden">
-        <div className="absolute inset-0 opacity-20 mix-blend-overlay">
+        <div className="absolute inset-0">
            <img 
               src="https://image-tc.galaxy.tf/wijpeg-fz79olm11325tcd55lqd0hwm/outside-view-1-tamarind-tree.jpg?width=1920" 
-              className="w-full h-full object-cover grayscale" 
-              alt="Background Texture" 
+              className="w-full h-full object-cover" 
+              alt="Ukwaju Spa View" 
            />
+           <div className="absolute inset-0 bg-black/60 mix-blend-multiply" />
+           <div className="absolute inset-0 bg-gradient-to-t from-tamarind-900/90 via-tamarind-900/40 to-transparent" />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto text-center px-6">
           <motion.h2 
@@ -290,8 +292,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 border-b border-white/10 pb-16">
           <div className="col-span-1 md:col-span-1">
              <div className="text-2xl font-serif tracking-widest mb-2 flex flex-col">
-              <span>UKWAJU</span>
-              <span className="text-[0.6rem] tracking-[0.3em] font-sans opacity-70">BY TAMARIND TREE</span>
+              <span className="text-brand-500 font-bold">UKWAJU SPA</span>
+              <span className="text-[0.5rem] tracking-[0.3em] font-sans opacity-70 border-tamarind-100">AT TAMARIND TREE HOTEL</span>
             </div>
             <p className="text-warm-white/60 text-sm font-light mt-6">
               A haven of peace inspired by the rich coastal heritage and the therapeutic power of nature.
