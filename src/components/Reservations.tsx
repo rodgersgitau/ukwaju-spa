@@ -27,7 +27,7 @@ export default function Reservations({ activeForm, setActiveForm, voucherInitial
               className={cn(
                 "px-8 py-3 text-xs tracking-widest uppercase transition-all rounded-full",
                 activeForm === 'booking' 
-                  ? "bg-tamarind-900 text-warm-white" 
+                  ? "bg-brand-700 text-warm-white" 
                   : "bg-transparent text-tamarind-700 hover:bg-tamarind-100"
               )}
             >

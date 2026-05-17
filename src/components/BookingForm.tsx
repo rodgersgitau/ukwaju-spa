@@ -60,6 +60,7 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
     }
   });
   const [success, setSuccess] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<BookingFormData | null>(null);
   const [serverError, setServerError] = useState('');
   
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -121,24 +122,24 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
     }
 
     while (currentStart + (durationValue || 60) <= endLimit) {
-      if (currentStart >= minMinutesToday) {
-        const hours = Math.floor(currentStart / 60);
-        const mins = currentStart % 60;
-        const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-        
-        const displayHours = hours === 12 ? 12 : hours % 12;
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayString = `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+      const hours = Math.floor(currentStart / 60);
+      const mins = currentStart % 60;
+      const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      
+      const displayHours = hours === 12 ? 12 : hours % 12;
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayString = `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
 
-        slots.push({ value: timeString, label: displayString });
-      }
+      const isDisabled = currentStart < minMinutesToday;
+
+      slots.push({ value: timeString, label: displayString, disabled: isDisabled });
       currentStart += interval;
     }
     return slots;
   }, [durationValue, startHour, endHour, selectedDate]);
 
   React.useEffect(() => {
-    if (selectedTime && !timeSlots.find(s => s.value === selectedTime)) {
+    if (selectedTime && !timeSlots.find(s => s.value === selectedTime && !s.disabled)) {
       setValue('time', '', { shouldValidate: true });
     }
   }, [timeSlots, selectedTime, setValue]);
@@ -155,8 +156,8 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
       const result = await response.json();
       
       if (response.ok) {
+        setBookingDetails(data);
         setSuccess(true);
-        reset();
       } else {
         setServerError(result.error || 'Failed to submit booking. Please try again.');
       }
@@ -165,26 +166,65 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
     }
   };
 
-  if (success) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-brand-900 fade-in">
-        <CheckCircle className="w-16 h-16 text-brand-500 mb-6" />
-        <h3 className="font-serif text-3xl mb-4">Your Retreat Awaits</h3>
-        <p className="text-lg text-tamarind-700 max-w-md mx-auto mb-8">
-          Thank you for choosing Ukwaju Spa. A gentle reminder of your reservation has been sent to your email. We look forward to welcoming you into our sanctuary.
-        </p>
-        <button 
-          onClick={() => setSuccess(false)}
-          className="border-b border-tamarind-500 pb-1 text-sm uppercase tracking-widest hover:text-brand-700 transition-colors"
-        >
-          Book Another Experience
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 fade-in text-left" noValidate>
+    <>
+      {success && bookingDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-tamarind-900/40 backdrop-blur-sm">
+          <div className="bg-warm-white p-8 max-w-md w-full rounded-[2rem] shadow-2xl relative animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center justify-center text-center text-brand-900">
+              <CheckCircle className="w-16 h-16 text-brand-500 mb-6" />
+              <h3 className="font-serif text-3xl mb-3">Your Retreat Awaits</h3>
+              <p className="text-sm text-tamarind-700 mx-auto mb-8 font-light">
+                Thank you, <strong className="font-medium text-tamarind-900">{bookingDetails.name}</strong>. A gentle reminder has been sent to your email.
+              </p>
+              
+              <div className="w-full bg-warm-paper p-5 rounded-2xl mb-8 text-left space-y-4 text-sm text-tamarind-900 border border-tamarind-100">
+                <div className="flex justify-between border-b border-tamarind-100 pb-3">
+                  <span className="text-tamarind-700 font-medium text-xs uppercase tracking-widest">Service</span>
+                  <span className="font-medium text-right max-w-[60%]">{bookingDetails.service}</span>
+                </div>
+                <div className="flex justify-between border-b border-tamarind-100 pb-3">
+                  <span className="text-tamarind-700 font-medium text-xs uppercase tracking-widest">Date</span>
+                  <span className="font-medium">{bookingDetails.date}</span>
+                </div>
+                <div className="flex justify-between border-b border-tamarind-100 pb-3">
+                  <span className="text-tamarind-700 font-medium text-xs uppercase tracking-widest">Time</span>
+                  <span className="font-medium">
+                    {(() => {
+                      const timeStr = bookingDetails.time;
+                      if (!timeStr) return '';
+                      const [h, m] = timeStr.split(':');
+                      if (!h || !m) return timeStr;
+                      const hourNum = parseInt(h, 10);
+                      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+                      const displayH = hourNum === 12 ? 12 : hourNum % 12;
+                      return `${displayH}:${m} ${ampm}`;
+                    })()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-tamarind-700 font-medium text-xs uppercase tracking-widest">Duration</span>
+                  <span className="font-medium">{bookingDetails.duration} Minutes</span>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => {
+                  setSuccess(false);
+                  setBookingDetails(null);
+                  reset();
+                }}
+                className="w-full bg-tamarind-900 text-warm-white py-3 px-6 rounded-full text-xs font-medium tracking-widest uppercase hover:bg-tamarind-700 transition-colors"
+                type="button"
+              >
+                Close & Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 fade-in text-left" noValidate>
       {serverError && (
         <div className="p-4 bg-red-50 text-red-800 rounded-xl text-sm mb-6">
           {serverError}
@@ -363,12 +403,15 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
               <button
                 key={slot.value}
                 type="button"
+                disabled={slot.disabled}
                 onClick={() => setValue('time', slot.value, { shouldValidate: true })}
                 className={cn(
                   "py-2.5 px-2 text-sm border rounded-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1",
-                  selectedTime === slot.value 
-                    ? "bg-brand-900 border-brand-900 text-warm-white shadow-sm" 
-                    : "border-tamarind-200 text-tamarind-900 hover:bg-brand-50 hover:border-brand-300 bg-transparent"
+                  slot.disabled
+                    ? "opacity-40 cursor-not-allowed bg-tamarind-50 text-tamarind-500 border-tamarind-100"
+                    : selectedTime === slot.value 
+                      ? "bg-brand-900 border-brand-900 text-warm-white shadow-sm" 
+                      : "border-tamarind-200 text-tamarind-900 hover:bg-brand-50 hover:border-brand-300 bg-transparent"
                 )}
                 aria-pressed={selectedTime === slot.value}
               >
@@ -404,11 +447,12 @@ export default function BookingForm({ onGiftSelect }: { onGiftSelect?: (data: Pa
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-brand-900 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-brand-700 disabled:opacity-70 flex justify-center items-center"
+          className="w-full bg-tamarind-900 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-tamarind-700 disabled:opacity-70 flex justify-center items-center"
         >
           {isSubmitting ? 'Reserving...' : 'Confirm Reservation'}
         </button>
       </div>
-    </form>
+      </form>
+    </>
   );
 }

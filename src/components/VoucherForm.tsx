@@ -225,7 +225,7 @@ export default function VoucherForm({ initialValues }: { initialValues?: Partial
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-tamarind-700 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-tamarind-900 disabled:opacity-70 flex justify-center items-center"
+          className="w-full bg-tamarind-900 text-warm-white py-4 px-8 tracking-[0.2em] text-sm uppercase transition-colors hover:bg-tamarind-700 disabled:opacity-70 flex justify-center items-center"
         >
           {isSubmitting ? 'Processing...' : 'Purchase Gift Voucher'}
         </button>
